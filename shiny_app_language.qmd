@@ -26,11 +26,10 @@ library (leaflet)
 ```{r}
 gpkg_path <- here("data", "county_data.gpkg")
 
-st_layers(gpkg_path)          # see layer names
-counties <- st_read(gpkg_path, layer = "county_data")  # or whatever layer name appears
+st_layers(gpkg_path)
+counties <- st_read(gpkg_path, layer = "county_data")
 
-names(counties)               # see column names
-unique(counties$SOME_COLUMN)  # inspect a candidate column for the dropdown
+names(counties)             
 ```
 
 ```{r setup, include=FALSE}
@@ -38,24 +37,10 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 ```
 
 ```{r}
-gpkg_path <- here("data", "county_data.gpkg")
-
-# See what layers are in the .gpkg
-st_layers(gpkg_path)
-
-# Read the main layer (replace "counties" with the actual layer name if different)
-counties <- st_read(gpkg_path, layer = "county_data", quiet = TRUE)
 ```
 
 ```{r}
-# See column names
 names(counties)
-
-# Example: inspect a candidate column (replace SOME_COLUMN with a real name)
-# unique(counties$SOME_COLUMN)
-
-# Choose the column you want to filter/color by, e.g.:
-filter_col <- "YOUR_COLUMN_HERE"  # e.g. "language", "region", "state", etc.
 ```
 
 ```{r}
@@ -67,7 +52,6 @@ unique(counties[[filter_col]])
 ```
 
 ```{r}
-names(counties)
 ```
 
 ```{r}
@@ -85,14 +69,6 @@ names(counties)
 
 ```{r}
 filter_col %in% names(counties)
-```
-
-```{r}
-# Make sure it's character/factor
-counties[[filter_col]] <- as.character(counties[[filter_col]])
-
-# Check unique values
-unique(counties[[filter_col]])
 ```
 
 ```{r}
