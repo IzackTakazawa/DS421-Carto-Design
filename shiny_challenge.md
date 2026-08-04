@@ -1,8 +1,8 @@
-## Shiny Challenge 🌐 
+## Shiny Challenge 🌐
 
 Can you write an R script to create a shiny app with the functionality shown in the video below utilizing the [county_data.gpkg](https://github.com/NSF-ALL-SPICE-Alliance/DS421-Carto-Design/blob/main/data/county_data.gpkg) (click download raw file on github after following the hyperlink)and the following packages. Please name this shiny_app_language.qmd and push to your github repository
 
-```r
+``` r
 library(shiny)
 library(mapview)
 library(here)
@@ -11,10 +11,9 @@ library(tidyverse)
 library leaflet
 ```
 
-
 ### Use this example from class to help you from the fire data
 
-```r
+``` r
 ui <- fluidPage(
   titlePanel("Fire Predictions"),
   sidebarLayout(
@@ -46,16 +45,9 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
-### Tips 
+### Tips
+
 - This is a .gpkg file (new to us) but you can read it in with st_read()
 - The dataframe should have everything you need, no need for new calculations/columns
 
-
-
-
-https://github.com/user-attachments/assets/5f5327e4-7a42-4439-8350-0fc6c0be064f
-
-
-
-
-
+<https://github.com/user-attachments/assets/5f5327e4-7a42-4439-8350-0fc6c0be064f>

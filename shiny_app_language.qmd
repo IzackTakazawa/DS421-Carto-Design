@@ -1,0 +1,153 @@
+---
+title: "shiny_app_language"
+output: html_document
+runtime: shiny
+---
+
+### SHINY CHALLENGE IZACK
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+library(shiny)
+library(mapview)
+library(here)
+library(sf)
+library(tidyverse)
+library (leaflet)
+```
+
+```{r}
+gpkg_path <- here("data", "county_data.gpkg")
+
+st_layers(gpkg_path)          # see layer names
+counties <- st_read(gpkg_path, layer = "county_data")  # or whatever layer name appears
+
+names(counties)               # see column names
+unique(counties$SOME_COLUMN)  # inspect a candidate column for the dropdown
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+```{r}
+gpkg_path <- here("data", "county_data.gpkg")
+
+# See what layers are in the .gpkg
+st_layers(gpkg_path)
+
+# Read the main layer (replace "counties" with the actual layer name if different)
+counties <- st_read(gpkg_path, layer = "county_data", quiet = TRUE)
+```
+
+```{r}
+# See column names
+names(counties)
+
+# Example: inspect a candidate column (replace SOME_COLUMN with a real name)
+# unique(counties$SOME_COLUMN)
+
+# Choose the column you want to filter/color by, e.g.:
+filter_col <- "YOUR_COLUMN_HERE"  # e.g. "language", "region", "state", etc.
+```
+
+```{r}
+# Make sure it's character/factor
+counties[[filter_col]] <- as.character(counties[[filter_col]])
+
+# Check unique values
+unique(counties[[filter_col]])
+```
+
+```{r}
+names(counties)
+```
+
+```{r}
+filter_col <- "language"
+```
+
+```{r}
+filter_col
+```
+
+```{r}
+exists("counties")
+names(counties)
+```
+
+```{r}
+filter_col %in% names(counties)
+```
+
+```{r}
+# Make sure it's character/factor
+counties[[filter_col]] <- as.character(counties[[filter_col]])
+
+# Check unique values
+unique(counties[[filter_col]])
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+ui <- fluidPage(
+  titlePanel("County Language Map"),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput(
+        "var",
+        "Choose category",
+        choices = sort(unique(counties[[filter_col]]))
+      )
+    ),
+    mainPanel(
+      leafletOutput("map", height = "700px")
+    )
+  )
+)
+```
+
+```{r}
+server <- function(input, output, session) {
+  output$map <- renderLeaflet({
+    req(filter_col %in% names(counties))
+    
+    filtered_data <- counties[counties[[filter_col]] == input$var, ]
+    
+    mapview(
+      filtered_data,
+      zcol = filter_col,
+      layer.name = filter_col
+    )@map
+  })
+}
+```
+
+```{r}
+shinyApp(ui, server)
+```
+
+```{r}
+
+```
+
+### Tips
+
+- This is a .gpkg file (new to us) but you can read it in with st_read()
+- The dataframe should have everything you need, no need for new calculations/columns
+
+<https://github.com/user-attachments/assets/5f5327e4-7a42-4439-8350-0fc6c0be064f>
