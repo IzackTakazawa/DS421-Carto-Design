@@ -4,7 +4,7 @@ format: html
 editor: visual
 ---
 
-### Welcome! 
+### Welcome!
 
 The [Hawaii State GIS Program](https://geoportal.hawaii.gov/) is an awesome resource for us to be aware of as GIS analysts in Hawaii. Their mission is "Improving efficiency and effectiveness in government decision-making through education, facilitation, and coordination of GIS mapping technologies."
 
@@ -12,7 +12,7 @@ In a GIS Analyst position here, you may often be combining data that is relevant
 
 - get familiar with the resource
 
--  plot agricultural land use data together
+- plot agricultural land use data together
 
 - lastly you will each pick one dataset to map and share towards the end of the class
 
@@ -32,7 +32,7 @@ options(scipen = 99)
 Read in data with `st_read()`
 
 ```{r}
-ag_lands <- st_read(here("data/2020_Agricultural_Land_Use.geojson"))
+ag_lands <- st_read(here("/Users/takaz/OneDrive/DS421-Carto-Designv2/data/2020_Agricultural_Land_Use.geojson"))
 ```
 
 How many unique crops are there in the crops_2020 column
@@ -109,10 +109,102 @@ n <- length(unique(ag_lands$crops_2020))
 mapview(ag_lands, zcol = "crops_2020", col.regions = qualitative_hcl(n, palette = "Dark 3"))
 ```
 
-### Your turn! 
+### Your turn!
 
 1.  Choose a dataset from the Hawaii State GIS Program
 2.  Explore the dataset
 3.  Create at least one ggplot() describing the dataset
 4.  Map it
 5.  Share with the class
+
+```{r}
+dod_lands <- st_read(here("/Users/takaz/OneDrive/DS421-Carto-Designv2/data/Department_of_Defense_Lands.geojson"))
+```
+
+```{r}
+unique(dod_lands$county)
+```
+
+```{r}
+ggplot(data = dod_lands) +
+  geom_sf(aes(fill = county), color = "black", linewidth = 0.2) +
+  labs(
+    title = "Department of Defense Lands Across Hawaii",
+    fill = "County"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 18, face = "bold"),
+    legend.position = "right"
+  )
+```
+
+```{r}
+honolulu <- dod_lands %>%
+  filter(county == "Honolulu")
+
+ggplot(honolulu) +
+  geom_sf(fill = "darkgreen", color = "black") +
+  labs(title = "Department of Defense Lands in Honolulu County") +
+  theme_minimal()
+```
+
+```{r}
+
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = dod_lands,
+          aes(fill = county),
+          color = "white",
+          linewidth = 0.15) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(
+    title = "Department of Defense Lands Across Hawaii",
+    subtitle = "By County",
+    fill = "County"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    panel.grid.major = element_line(color = "gray90"),
+    plot.title = element_text(face = "bold", size = 20),
+    legend.position = "right"
+  )
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = counties,
+          fill = "gray95",
+          color = "gray60",
+          linewidth = 0.3) +
+  geom_sf(data = dod_lands,
+          fill = "#C62828",
+          color = "black",
+          alpha = 0.8,
+          linewidth = 0.2) +
+  coord_sf(
+    xlim = c(-161, -154),
+    ylim = c(18, 23),
+    expand = FALSE
+  ) +
+  labs(title = "Department of Defense Lands in Hawaii") +
+  theme_minimal()
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
