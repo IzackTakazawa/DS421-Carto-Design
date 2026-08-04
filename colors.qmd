@@ -4,7 +4,7 @@ format: html
 editor: visual
 ---
 
-### Welcome to today's lecture! 
+### Welcome to today's lecture!
 
 We will talk about several different coloring styles and techniques with our familiar Oahu Median Income dataset
 
