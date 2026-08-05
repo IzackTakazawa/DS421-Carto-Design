@@ -22,9 +22,11 @@ library(leaflet)
 library(RColorBrewer)
 library(htmlwidgets)
 library(scales)
-library(countrycode) #install.packages("countrycode")
+library(countrycode)
+install.packages("countrycode")
 library(shiny)
-library(rnaturalearth)  # install.packages("rnaturalearth")
+library(rnaturalearth)
+install.packages("rnaturalearth")
 ```
 
 ### Download and load in dataset
@@ -67,12 +69,12 @@ shark_clean <- shark |>
     `Case Number`,
     Date,
     Type,
-    country,
-    area,
-    location,
-    activity,
-    injury,
-    `fatal`,
+    Country,
+    Area,
+    Location,
+    Activity,
+    Injury,
+    `Fatal (Y/N)`,
     Time,
     Species
   )
@@ -81,37 +83,37 @@ shark_clean <- shark |>
 glimpse(shark_clean)
 ```
 
-### Create injury severity categories
+### Create Injury severity categories
 
 ```{r}
 shark_clean <- shark_clean |>
   mutate(
-    injury_cat = case_when(
-      `fatal` == "Y" | str_detect(tolower(injury), "fatal") ~ "Fatal",
-      str_detect(tolower(injury), "severe")                       ~ "Severe",
-      str_detect(tolower(injury), "minor")                        ~ "Minor",
-      TRUE                                                        ~ "No injury / Unknown"
+    Injury_cat = case_when(
+      `Fatal (Y/N)` == "Y" | str_detect(tolower(Injury), "Fatal (Y/N)") ~ "Fatal",
+      str_detect(tolower(Injury), "severe")                       ~ "Severe",
+      str_detect(tolower(Injury), "minor")                        ~ "Minor",
+      TRUE                                                        ~ "No Injury / Unknown"
     )
   )
 
-injury_levels <- c("Fatal", "Severe", "Minor", "No injury / Unknown")
+Injury_levels <- c("Fatal", "Severe", "Minor", "No Injury / Unknown")
 
-injury_pal <- colorFactor(
+Injury_pal <- colorFactor(
   palette = brewer.pal(4, "YlOrRd"),
-  domain  = injury_levels,
-  levels  = injury_levels
+  domain  = Injury_levels,
+  levels  = Injury_levels
 )
 ```
 
-### Aggregate to the country
+### Aggregate to the Country
 
 ```{r}
-shark_country <- shark_clean |>
-  filter(!is.na(country), country != "") |>
+shark_Country <- shark_clean |>
+  filter(!is.na(Country), Country != "") |>
   mutate(
-    fatal_flag = if_else(`fatal` == "Y", 1L, 0L)
+    fatal_flag = if_else(`Fatal (Y/N)` == "Y", 1L, 0L)
   ) |>
-  group_by(country) |>
+  group_by(Country) |>
   summarise(
     n_incidents   = n(),
     n_fatal       = sum(fatal_flag),
@@ -119,17 +121,17 @@ shark_country <- shark_clean |>
     .groups = "drop"
   )
 
-# Convert country names to ISO3 codes for mapping
-shark_country <- shark_country |>
+# Convert Country names to ISO3 codes for mapping
+shark_Country <- shark_Country |>
   mutate(
-    iso3 = countrycode(country,
+    iso3 = countrycode(Country,
                        origin = "country.name",
                        destination = "iso3c",
                        warn = FALSE)
   ) |>
   filter(!is.na(iso3))
 
-head(shark_country)
+head(shark_Country)
 ```
 
 ### Load world polygons
@@ -140,7 +142,7 @@ world_sf <- ne_countries(scale = "medium", returnclass = "sf")
 
 # Join shark data to world polygons
 world_shark <- world_sf |>
-  left_join(shark_country, by = c("iso_a3" = "iso3"))
+  left_join(shark_Country, by = c("iso_a3" = "iso3"))
 ```
 
 ### Create incident categories
@@ -192,7 +194,7 @@ inc_pal <- colorFactor(
   levels  = levels(world_shark$inc_cat)
 )
 
-popup_country <- paste0(
+popup_Country <- paste0(
   "<strong>Country:</strong> ", world_shark$name, "<br/>",
   "<strong>Incidents:</strong> ", ifelse(is.na(world_shark$n_incidents), 0, world_shark$n_incidents), "<br/>",
   "<strong>Fatal:</strong> ", ifelse(is.na(world_shark$n_fatal), 0, world_shark$n_fatal), "<br/>",
@@ -200,7 +202,7 @@ popup_country <- paste0(
   scales::percent(ifelse(is.na(world_shark$fatal_rate), 0, world_shark$fatal_rate), accuracy = 0.1)
 )
 
-m_country <- leaflet(world_shark) |>
+m_Country <- leaflet(world_shark) |>
   addProviderTiles("CartoDB.Positron") |>
   addPolygons(
     fillColor = ~inc_pal(inc_cat),
@@ -208,7 +210,7 @@ m_country <- leaflet(world_shark) |>
     color = "white",
     weight = 0.5,
     smoothFactor = 0.5,
-    popup = popup_country,
+    popup = popup_Country,
     highlightOptions = highlightOptions(
       color = "yellow",
       weight = 2,
@@ -234,13 +236,13 @@ title_html <- tags$div(
   )
 )
 
-m_country <- m_country |> addControl(title_html, position = "topleft")
+m_Country <- m_Country |> addControl(title_html, position = "topleft")
 
 # Display the map
-m_country
+m_Country
 
 # Optional: save as standalone HTML
-# saveWidget(m_country, "shark_attacks_by_country.html", selfcontained = TRUE)
+# saveWidget(m_Country, "shark_attacks_by_Country.html", selfcontained = TRUE)
 ```
 
 ```{r}
@@ -253,7 +255,7 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   output$sharkMap <- renderLeaflet({
-    m_country
+    m_Country
   })
 }
 
