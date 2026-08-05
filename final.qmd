@@ -1,0 +1,265 @@
+---
+title: "Global Shark Attack Incidents by Country"
+subtitle: "DS421: Cartographic Design – Final Project"
+format: html
+---
+
+### Install Packages
+
+```{r}
+#install.packages("remotes")
+#remotes::install_github("benyamindsmith/RKaggle")
+
+library(RKaggle)
+```
+
+```{r}
+#Download required libraries
+library(tidyverse)
+library(lubridate)
+library(janitor)
+library(leaflet)
+library(RColorBrewer)
+library(htmlwidgets)
+library(scales)
+library(countrycode) #install.packages("countrycode")
+library(shiny)
+library(rnaturalearth)  # install.packages("rnaturalearth")
+```
+
+### Download and load in dataset
+
+```{r}
+# Downloads and reads the dataset into R as a list of data frames
+shark_data <- RKaggle::get_dataset("thedevastator/global-shark-attack-incidents")
+```
+
+### Explore dataset
+
+```{r}
+names(shark_data)
+```
+
+```{r}
+head(shark_data[[1]])   #Display first few rows of dataset
+```
+
+### View main incidents table
+
+```{r}
+# Main incidents table
+shark <- shark_data[[1]]
+```
+
+### Inspect column names
+
+```{r}
+# Inspect column names
+colnames(shark)
+```
+
+### Filter to relevant columns
+
+```{r}
+# Keep only meaningful columns
+shark_clean <- shark |>
+  select(
+    `Case Number`,
+    Date,
+    Type,
+    country,
+    area,
+    location,
+    activity,
+    injury,
+    `fatal`,
+    Time,
+    Species
+  )
+
+# Inspect
+glimpse(shark_clean)
+```
+
+### Create injury severity categories
+
+```{r}
+shark_clean <- shark_clean |>
+  mutate(
+    injury_cat = case_when(
+      `fatal` == "Y" | str_detect(tolower(injury), "fatal") ~ "Fatal",
+      str_detect(tolower(injury), "severe")                       ~ "Severe",
+      str_detect(tolower(injury), "minor")                        ~ "Minor",
+      TRUE                                                        ~ "No injury / Unknown"
+    )
+  )
+
+injury_levels <- c("Fatal", "Severe", "Minor", "No injury / Unknown")
+
+injury_pal <- colorFactor(
+  palette = brewer.pal(4, "YlOrRd"),
+  domain  = injury_levels,
+  levels  = injury_levels
+)
+```
+
+### Aggregate to the country
+
+```{r}
+shark_country <- shark_clean |>
+  filter(!is.na(country), country != "") |>
+  mutate(
+    fatal_flag = if_else(`fatal` == "Y", 1L, 0L)
+  ) |>
+  group_by(country) |>
+  summarise(
+    n_incidents   = n(),
+    n_fatal       = sum(fatal_flag),
+    fatal_rate    = n_fatal / n_incidents,
+    .groups = "drop"
+  )
+
+# Convert country names to ISO3 codes for mapping
+shark_country <- shark_country |>
+  mutate(
+    iso3 = countrycode(country,
+                       origin = "country.name",
+                       destination = "iso3c",
+                       warn = FALSE)
+  ) |>
+  filter(!is.na(iso3))
+
+head(shark_country)
+```
+
+### Load world polygons
+
+```{r}
+# Cell 9: Load world polygons and join shark data
+world_sf <- ne_countries(scale = "medium", returnclass = "sf")
+
+# Join shark data to world polygons
+world_shark <- world_sf |>
+  left_join(shark_country, by = c("iso_a3" = "iso3"))
+```
+
+### Create incident categories
+
+```{r}
+# Cell 10: Create incident categories (robust breaks)
+world_shark <- world_shark |>
+  mutate(
+    log_incidents = log1p(n_incidents)  # log(1 + x) to handle zeros
+  )
+
+# Create breaks that are guaranteed to be unique
+breaks <- unique(
+  quantile(world_shark$log_incidents,
+           probs = seq(0, 1, by = 0.25),
+           na.rm = TRUE)
+)
+
+# If there are very few unique values, fall back to simpler breaks
+if (length(breaks) < 2) {
+  breaks <- c(min(world_shark$log_incidents, na.rm = TRUE),
+              max(world_shark$log_incidents, na.rm = TRUE))
+}
+
+# Ensure min and max are covered
+breaks <- c(min(breaks), breaks, max(breaks))
+breaks <- unique(breaks)
+
+# Now create categories
+world_shark <- world_shark |>
+  mutate(
+    inc_cat = cut(
+      log_incidents,
+      breaks = breaks,
+      include.lowest = TRUE,
+      labels = paste0("Q", seq_len(length(breaks) - 1))
+    )
+  )
+```
+
+### Build and display interactive map
+
+```{r}
+# Cell 11: Build and display the interactive map
+
+inc_pal <- colorFactor(
+  palette = brewer.pal(min(length(levels(world_shark$inc_cat)), 5), "Blues"),
+  domain  = levels(world_shark$inc_cat),
+  levels  = levels(world_shark$inc_cat)
+)
+
+popup_country <- paste0(
+  "<strong>Country:</strong> ", world_shark$name, "<br/>",
+  "<strong>Incidents:</strong> ", ifelse(is.na(world_shark$n_incidents), 0, world_shark$n_incidents), "<br/>",
+  "<strong>Fatal:</strong> ", ifelse(is.na(world_shark$n_fatal), 0, world_shark$n_fatal), "<br/>",
+  "<strong>Fatal rate:</strong> ",
+  scales::percent(ifelse(is.na(world_shark$fatal_rate), 0, world_shark$fatal_rate), accuracy = 0.1)
+)
+
+m_country <- leaflet(world_shark) |>
+  addProviderTiles("CartoDB.Positron") |>
+  addPolygons(
+    fillColor = ~inc_pal(inc_cat),
+    fillOpacity = 0.8,
+    color = "white",
+    weight = 0.5,
+    smoothFactor = 0.5,
+    popup = popup_country,
+    highlightOptions = highlightOptions(
+      color = "yellow",
+      weight = 2,
+      bringToFront = TRUE
+    )
+  ) |>
+  addLegend(
+    pal = inc_pal,
+    values = ~inc_cat,
+    title = "Shark incidents (log scale)",
+    position = "bottomright",
+    opacity = 0.9
+  ) |>
+  setView(lng = -150, lat = 20, zoom = 3)
+
+# Add title
+title_html <- tags$div(
+  tags$h3(
+    "Global Shark Attack Incidents by Country",
+    style = "position:absolute; top:10px; left:50px; z-index:1000;
+           background: rgba(255,255,255,0.85); padding: 6px 10px;
+           border-radius: 4px; font-family: sans-serif; margin: 0;"
+  )
+)
+
+m_country <- m_country |> addControl(title_html, position = "topleft")
+
+# Display the map
+m_country
+
+# Optional: save as standalone HTML
+# saveWidget(m_country, "shark_attacks_by_country.html", selfcontained = TRUE)
+```
+
+```{r}
+# ---- Shiny UI and server ----
+
+ui <- fluidPage(
+  titlePanel("DS421 Final Project – Global Shark Attack Incidents"),
+  leafletOutput("sharkMap", height = "700px")
+)
+
+server <- function(input, output, session) {
+  output$sharkMap <- renderLeaflet({
+    m_country
+  })
+}
+
+shinyApp <- shinyApp(ui, server)
+```
+
+```{r}
+shinyApp(ui, server)
+```
