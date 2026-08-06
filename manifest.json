@@ -6724,7 +6724,7 @@
       "checksum": "56cda81161b135617b599782c8de6eaa"
     },
     "app.R": {
-      "checksum": "ae6fda094690dbb60c1320f62c166ed5"
+      "checksum": "495e846a87570ae6c702719b37ed8555"
     },
     "colors.qmd": {
       "checksum": "a468fc553bf8b422c913ab5d1d43a0c4"
@@ -6759,6 +6759,9 @@
     "deploy.md": {
       "checksum": "672632d9efc85ff0f0b48f81a35867f6"
     },
+    "DJ_DS421PROJ.R": {
+      "checksum": "60c23376d427ef06d296d758c1e861b3"
+    },
     "DS 421 Syllabus.pdf": {
       "checksum": "898c2dfd639c66191f2e165b008e75a6"
     },
@@ -6769,7 +6772,7 @@
       "checksum": "6278bec5a0dde7d0947faea2387b35bd"
     },
     "FINALREADME.md": {
-      "checksum": "b5ce338af205810b38ce59799b30f428"
+      "checksum": "35ef039332c6049ec5789eba922fee07"
     },
     "fundementals_mapgl.qmd": {
       "checksum": "dfed9707c1d35bd95d37f56d6219e469"
@@ -6809,6 +6812,9 @@
     },
     "storymap_demos.R": {
       "checksum": "6113bf2855935b2fb6324d8e4a377e6c"
+    },
+    "USRegionalMortality.csv": {
+      "checksum": "5fc61c735537bce295fd8bb053eca77d"
     },
     "wildfire.qmd": {
       "checksum": "2c9601ea2bdb652b09f66c0f367e2f8e"
