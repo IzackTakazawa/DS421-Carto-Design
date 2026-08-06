@@ -176,3 +176,6 @@ server <- function(input, output, session) {
 }
 
 shinyApp(ui, server)
+
+
+#rsconnect::writeManifest()

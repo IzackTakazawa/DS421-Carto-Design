@@ -23,10 +23,10 @@ library(RColorBrewer)
 library(htmlwidgets)
 library(scales)
 library(countrycode)
-install.packages("countrycode")
+#install.packages("countrycode")
 library(shiny)
 library(rnaturalearth)
-install.packages("rnaturalearth")
+#install.packages("rnaturalearth")
 ```
 
 ### Download and load in dataset
@@ -264,4 +264,9 @@ shinyApp <- shinyApp(ui, server)
 
 ```{r}
 shinyApp(ui, server)
+```
+
+```{r}
+install.packages("Rtools")
+
 ```
