@@ -179,3 +179,5 @@ shinyApp(ui, server)
 
 
 #rsconnect::writeManifest()
+#URL
+#https://connect.posit.cloud/izacktakazawa/content/019fd565-707d-0a27-7bbd-7c9400ecbaa7
